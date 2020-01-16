@@ -1,0 +1,44 @@
+---
+apiVersion: getambassador.io/v1
+kind: AuthService
+metadata:
+  name: authentication
+spec:
+  auth_service: "authservice:80"
+  proto: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authservice
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: authservice
+  template:
+    metadata:
+      labels:
+        app: authservice
+    spec:
+      containers:
+        - name: auth-server
+          image: meetdocker/http-authservice
+          ports:
+            - containerPort: 20020
+              name: http-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: authservice
+spec:
+  selector:
+    app: authservice
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http-api
+---
